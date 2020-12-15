@@ -1,49 +1,91 @@
-import sys
-print(sys.path)
-sys.path.append("C:\Program Files\CoppeliaRobotics\CoppeliaSimEdu\programming\remoteApiBindings\python\python")
-sys.path.append("C:\Program Files\CoppeliaRobotics\CoppeliaSimEdu\programming\remoteApiBindings\lib\lib\Windows")
-import sim
+import b0RemoteApi
+from sim_class import *
+import cv2
+import numpy as np
 import time
 
 if __name__ == '__main__':
-    sim.simxFinish(-1) # just in case, close all opened connections
-    clientID=sim.simxStart('127.0.0.1',19997,True,True,5000,5) # Connect to CoppeliaSim
-    sim.simxStopSimulation(clientID, sim.simx_opmode_oneshot)
-    if clientID != -1:
-        print('Connected to remote API server')
+    with b0RemoteApi.RemoteApiClient('test_node', 'b0RemoteApi') as client:
 
-        # Now try to retrieve data in a blocking fashion (i.e. a service call):
-        res, objs = sim.simxGetObjects(clientID, sim.sim_handle_all, sim.simx_opmode_blocking)
-        if res == sim.simx_return_ok:
-            print('Number of objects in the scene: ', len(objs))
-        else:
-            print('Remote API function call returned with error code: ', res)
 
-        time.sleep(2)
-        sim.simxStartSimulation(clientID, sim.simx_opmode_oneshot)
+        client.simxStartSimulation(client.simxServiceCall())
 
-        # Now retrieve streaming data (i.e. in a non-blocking fashion):
-        startTime = time.time()
-        sim.simxGetIntegerParameter(clientID, sim.sim_intparam_mouse_x,
-                                    sim.simx_opmode_streaming)  # Initialize streaming
-        while time.time() - startTime < 5:
-            returnCode, data = sim.simxGetIntegerParameter(clientID, sim.sim_intparam_mouse_x,
-                                                           sim.simx_opmode_buffer)  # Try to retrieve the streamed data
-            if returnCode == sim.simx_return_ok:  # After initialization of streaming, it will take a few ms before the first value arrives, so check the return code
-                print('Mouse position x: ',
-                      data)  # Mouse position x is actualized when the cursor is over CoppeliaSim's window
-            time.sleep(0.005)
+        # cube = Object(client, obj_name="test")
+        # # cube_test = Object(client, handle=cube.handle)
+        # # print(cube_test.name)
+        # print(cube.get_model_box())
+        #
+        #
+        cam = VisionSensor(client, "test_cam")
+        # cam.set_matrix(np.array([
+        #     [1, 0, 0, 0],
+        #     [0, -1, 0, 0],
+        #     [0, 0, -1, 1],
+        #     [0, 0, 0, 1]
+        # ]))
+        from scipy.spatial.transform import Rotation as R
+        pose = np.array([0,0,1] + R.from_euler("xyz", [np.pi,0,0], degrees=False).as_quat().tolist())
+        print(pose)
+        cam.set_pose(pose)
+        print(cam.get_euler())
+        print(R.from_quat(cam.get_quaternion()).as_euler("xyz", degrees=False))
 
-        # Now send some data to CoppeliaSim in a non-blocking fashion:
-        sim.simxAddStatusbarMessage(clientID, 'Hello CoppeliaSim!', sim.simx_opmode_oneshot)
+        # img = cam.get_image()
+        # print(img.shape)
+        # cv2.imshow("image", img)
+        # cv2.waitKey(0)
+        #
+        # img = cam.get_image(grey=True)
+        # print(img.shape)
+        # cv2.imshow("image", img)
+        # cv2.waitKey(0)
+        #
+        # depth = cam.get_depth()
+        # print(depth.shape)
+        # cv2.imshow("image", depth)
+        # cv2.waitKey(0)
 
-        # Before closing the connection to CoppeliaSim, make sure that the last command sent out had time to arrive. You can guarantee this with (for example):
-        sim.simxGetPingTime(clientID)
 
-        # Now close the connection to CoppeliaSim:
-        sim.simxFinish(clientID)
-    else:
-        print('Failed connecting to remote API server')
-    print('Program ended')
+        arm = UR5(client, obj_name="UR5")
+        print(arm.get_joints_target_positions())
+        # arm.set_joints_target_positions([0,0,0,0,0,0])
+        # print(arm.get_joints_positions())
+        arm.set_joints_target_positions([0,0,0,np.pi,0,0])
+        print(arm.get_joints_positions())
+
+        for joint in arm.joints:
+            joint.control_loop_enable(False)
+
+        # time.sleep(10)
+        #
+        # client.simxStopSimulation(client.simxServiceCall())
+
+    # doNextStep = True
+    #
+    #
+    # def simulationStepStarted(msg):
+    #     simTime = msg[1][b'simulationTime'];
+    #     print('Simulation step started. Simulation time: ', simTime)
+    #
+    #
+    # def simulationStepDone(msg):
+    #     simTime = msg[1][b'simulationTime'];
+    #     print('Simulation step done. Simulation time: ', simTime);
+    #     global doNextStep
+    #     doNextStep = True
+    #
+    #
+    # client.simxSynchronous(True)
+    # client.simxGetSimulationStepStarted(client.simxDefaultSubscriber(simulationStepStarted));
+    # client.simxGetSimulationStepDone(client.simxDefaultSubscriber(simulationStepDone));
+    # client.simxStartSimulation(client.simxDefaultPublisher())
+    #
+    # startTime = time.time()
+    # while time.time() < startTime + 5:
+    #     if doNextStep:
+    #         doNextStep = False
+    #         client.simxSynchronousTrigger()
+    #     client.simxSpinOnce()
+    # client.simxStopSimulation(client.simxDefaultPublisher())
 
 
