@@ -1,3 +1,9 @@
+# dependency
+- msgpack
+- numpy
+- opencv-python
+- scipy
+
 # object
 - get object
     - simxGetObjectHandle           

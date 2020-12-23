@@ -9,6 +9,7 @@ class UR5(Object):
         self.joints = [Joint(client, handle=joint_handle) for joint_handle in joint_handles[:6]]
         if not res:
             print("get UR5 arm joints failed")
+        self.target = Object(client, obj_name="UR5_target")
 
     def get_joints_positions(self):
         return [joint.get_joint_position() for joint in self.joints]
@@ -28,4 +29,5 @@ class UR5(Object):
             joint.set_joint_target_velocity(joints_velocities[i])
 
     def move_to(self, pose):
-        pass
+        self.target.set_pose(pose, self.handle)
+
