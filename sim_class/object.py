@@ -4,14 +4,14 @@ from .utils import *
 # euler order:
 
 class Object:
-    def __init__(self, client, obj_name=None, handle=None):
+    def __init__(self, client, name=None, handle=None):
         self.client = client
         if handle:
             self.handle = handle
             _, self.name = self.client.simxGetObjectName(self.handle, False, self.client.simxServiceCall())
-        elif obj_name:
-            self.name = obj_name
-            success, self.handle = self.client.simxGetObjectHandle(obj_name, self.client.simxServiceCall())
+        elif name:
+            self.name = name
+            success, self.handle = self.client.simxGetObjectHandle(name, self.client.simxServiceCall())
             if not success:
                 print("get object handle by name failed")
         else:

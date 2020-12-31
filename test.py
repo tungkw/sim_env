@@ -11,39 +11,38 @@ if __name__ == '__main__':
 
         client.simxStartSimulation(client.simxServiceCall())
 
-        arm = UR5(client, obj_name="UR5")
+        arm = UR5(client, name="UR5")
         arm.move_to(np.array([0,0,0.5,0,0,0,1]))
         time.sleep(5)
         client.simxStopSimulation(client.simxServiceCall())
 
+        # doNextStep = True
+        #
+        #
+        # def simulationStepStarted(msg):
+        #     simTime = msg[1][b'simulationTime'];
+        #     print('Simulation step started. Simulation time: ', simTime)
+        #
+        #
+        # def simulationStepDone(msg):
+        #     simTime = msg[1][b'simulationTime'];
+        #     print('Simulation step done. Simulation time: ', simTime);
+        #     global doNextStep
+        #     doNextStep = True
+        #
+        #
+        # client.simxSynchronous(True)
+        # client.simxGetSimulationStepStarted(client.simxDefaultSubscriber(simulationStepStarted));
+        # client.simxGetSimulationStepDone(client.simxDefaultSubscriber(simulationStepDone));
+        # client.simxStartSimulation(client.simxDefaultPublisher())
+        #
+        # startTime = time.time()
+        # while time.time() < startTime + 5:
+        #     if doNextStep:
+        #         doNextStep = False
+        #         client.simxSynchronousTrigger()
+        #     client.simxSpinOnce()
 
-
-    # doNextStep = True
-    #
-    #
-    # def simulationStepStarted(msg):
-    #     simTime = msg[1][b'simulationTime'];
-    #     print('Simulation step started. Simulation time: ', simTime)
-    #
-    #
-    # def simulationStepDone(msg):
-    #     simTime = msg[1][b'simulationTime'];
-    #     print('Simulation step done. Simulation time: ', simTime);
-    #     global doNextStep
-    #     doNextStep = True
-    #
-    #
-    # client.simxSynchronous(True)
-    # client.simxGetSimulationStepStarted(client.simxDefaultSubscriber(simulationStepStarted));
-    # client.simxGetSimulationStepDone(client.simxDefaultSubscriber(simulationStepDone));
-    # client.simxStartSimulation(client.simxDefaultPublisher())
-    #
-    # startTime = time.time()
-    # while time.time() < startTime + 5:
-    #     if doNextStep:
-    #         doNextStep = False
-    #         client.simxSynchronousTrigger()
-    #     client.simxSpinOnce()
-    # client.simxStopSimulation(client.simxDefaultPublisher())
+        client.simxStopSimulation(client.simxDefaultPublisher())
 
 

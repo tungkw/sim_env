@@ -11,12 +11,15 @@ from scipy.spatial.transform import Rotation as R
 # perspective angle is on y-z plane
 
 class VisionSensor(Object):
-    def __init__(self, client, obj_name=None, handle=None):
-        super(VisionSensor, self).__init__(client, obj_name=obj_name, handle=handle)
+    def __init__(self, client, name=None, handle=None):
+        super(VisionSensor, self).__init__(client, name=name, handle=handle)
 
         _, self.xdim = get_object_int_parameter(self.client, self.handle, "sim.visionintparam_resolution_x")
         _, self.ydim = get_object_int_parameter(self.client, self.handle, "sim.visionintparam_resolution_y")
+        self.resolution = [self.ydim, self.xdim]
         _, self.angle = get_object_float_parameter(self.client, self.handle, "sim.visionfloatparam_perspective_angle")
+        _, self.near_plane = get_object_float_parameter(self.client, self.handle, "sim.visionfloatparam_near_clipping")
+        _, self.far_plane = get_object_float_parameter(self.client, self.handle, "sim.visionfloatparam_far_clipping")
         print("camera {} resolution".format(self.name), self.xdim, self.ydim)
         print("camera {} perspective angle".format(self.name), self.angle)
 
@@ -55,7 +58,7 @@ class VisionSensor(Object):
         success, _, image_bytes = self.client.simxGetVisionSensorDepthBuffer(self.handle, True, True, self.client.simxServiceCall())
         if success:
             depth = np.frombuffer(image_bytes, np.float32, len(image_bytes)//4).reshape([self.ydim, self.xdim])
-            depth = depth[::-1, ...]
+            depth = np.copy(depth[::-1, ...])
             return depth
         else:
             return None
