@@ -49,7 +49,7 @@ class VisionSensor(Object):
                 image = np.frombuffer(image_bytes, np.uint8, len(image_bytes)).reshape([self.ydim, self.xdim])
             else:
                 image = np.frombuffer(image_bytes, np.uint8, len(image_bytes)).reshape([self.ydim, self.xdim, 3])
-            image = image[::-1, ...]
+            image = np.copy(image[::-1, ...])
             return image
         else:
             return None
