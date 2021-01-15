@@ -158,3 +158,4 @@ class Object:
         success, res = self.client.simxSetObjectPose(self.handle, base_frame_object_handle, np.array(pose).tolist(), self.client.simxServiceCall())
         if not success:
             print("set pose failed")
+            print(res)

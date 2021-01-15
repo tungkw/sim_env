@@ -64,3 +64,12 @@ class Joint(Object):
         success, res = self.client.simxSetJointTargetPosition(self.handle, position, self.client.simxServiceCall())
         if not success or res != 1:
             print("set joint {} target position failed".format(self.name))
+            print(res)
+
+    def set_mode(self, mode):
+        cmd = "sim.setJointMode({handle}, {mode}, 1)".format(
+            handle = self.handle,
+            mode = mode
+        )
+        ret = self.client.simxExecuteScriptString(cmd, self.client.simxServiceCall())
+        print(ret)

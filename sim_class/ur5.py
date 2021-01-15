@@ -1,6 +1,7 @@
 from .object import Object
 from .joint import Joint
-
+import numpy as np
+import time
 
 class UR5(Object):
     def __init__(self, client, name=None, handle=None):
@@ -10,6 +11,13 @@ class UR5(Object):
         if not res:
             print("get UR5 arm joints failed")
         self.target = Object(client, name="UR5_target")
+        # res, self.ik_group_handle = self.client.simxExecuteScriptString("sim.getIkGroupHandle(\"UR5_IK_Group\")", self.client.simxServiceCall())
+        # ret = self.client.simxExecuteScriptString("sim.computeJacobian({}, 1, nil)".format(self.ik_group_handle), self.client.simxServiceCall())
+        # print(ret)
+        # cmd = "sim.getIkGroupMatrix({handle}, 0)".format(handle=self.ik_group_handle)
+        # res, self.jacobian = self.client.simxExecuteScriptString(cmd, self.client.simxServiceCall())
+        # self.jacobian = np.array(self.jacobian).reshape(6, 6)
+        # self.inv_jacobian = np.linalg.inv(self.jacobian)
 
     def get_joints_positions(self):
         return [joint.get_joint_position() for joint in self.joints]
@@ -29,5 +37,6 @@ class UR5(Object):
             joint.set_joint_target_velocity(joints_velocities[i])
 
     def move_to(self, pose):
-        self.target.set_pose(pose, self.handle)
+        self.target.set_pose(pose)
+
 

@@ -65,38 +65,38 @@ class VisionSensor(Object):
 
     def get_matrix(self, base_frame_object_handle=-1):
         matrix = super(VisionSensor, self).get_matrix(base_frame_object_handle)
-        matrix = np.matmul(self.fix_rotation, matrix)
+        matrix = np.matmul(matrix, self.fix_rotation)
         return matrix
 
     def get_euler(self, base_frame_object_handle=-1):
         euler = super(VisionSensor, self).get_euler(base_frame_object_handle)
-        euler = (R.from_matrix(self.fix_rotation[:3,:3]) * R.from_euler("xyz", euler, degrees=False)).as_euler("xyz", degrees=False)
+        euler = (R.from_euler("xyz", euler, degrees=False) * R.from_matrix(self.fix_rotation[:3,:3])).as_euler("xyz", degrees=False)
         return euler
 
     def get_quaternion(self, base_frame_object_handle=-1):
         quaternion = super(VisionSensor, self).get_quaternion(base_frame_object_handle)
-        quaternion = (R.from_matrix(self.fix_rotation[:3,:3]) * R.from_quat(quaternion)).as_quat()
+        quaternion = (R.from_quat(quaternion) * R.from_matrix(self.fix_rotation[:3,:3])).as_quat()
         return quaternion
 
     def get_pose(self, base_frame_object_handle=-1):
         pose = super(VisionSensor, self).get_pose(base_frame_object_handle)
-        pose[3:] = (R.from_matrix(self.fix_rotation[:3,:3]) * R.from_quat(pose[3:])).as_quat()
+        pose[3:] = (R.from_quat(pose[3:]) * R.from_matrix(self.fix_rotation[:3,:3])).as_quat()
         return pose
 
     def set_matrix(self, matrix, base_frame_object_handle=-1):
-        matrix = np.matmul(np.linalg.inv(self.fix_rotation), matrix)
+        matrix = np.matmul(matrix, np.linalg.inv(self.fix_rotation))
         super(VisionSensor, self).set_matrix(matrix, base_frame_object_handle)
 
     def set_euler(self, euler, base_frame_object_handle=-1):
-        euler = (R.from_matrix(np.linalg.inv(self.fix_rotation[:3,:3])) * R.from_euler("xyz", euler, degrees=False)).as_euler("xyz", degrees=False)
+        euler = (R.from_euler("xyz", euler, degrees=False) * R.from_matrix(np.linalg.inv(self.fix_rotation[:3,:3]))).as_euler("xyz", degrees=False)
         super(VisionSensor, self).set_euler(euler, base_frame_object_handle)
 
     def set_quaternion(self, quaternion, base_frame_object_handle=-1):
-        quaternion = (R.from_matrix(np.linalg.inv(self.fix_rotation[:3,:3])) * R.from_quat(quaternion)).as_quat()
+        quaternion = (R.from_quat(quaternion) * R.from_matrix(np.linalg.inv(self.fix_rotation[:3,:3]))).as_quat()
         super(VisionSensor, self).set_quaternion(quaternion, base_frame_object_handle)
 
     def set_pose(self, pose, base_frame_object_handle=-1):
-        pose[3:] = (R.from_matrix(np.linalg.inv(self.fix_rotation[:3,:3])) * R.from_quat(pose[3:])).as_quat()
+        pose[3:] = (R.from_quat(pose[3:]) * R.from_matrix(np.linalg.inv(self.fix_rotation[:3,:3]))).as_quat()
         super(VisionSensor, self).set_pose(pose, base_frame_object_handle)
 
 
