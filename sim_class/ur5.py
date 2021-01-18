@@ -11,6 +11,7 @@ class UR5(Object):
         if not res:
             print("get UR5 arm joints failed")
         self.target = Object(client, name="UR5_target")
+        self.tip = Object(client, name="UR5_tip")
         # res, self.ik_group_handle = self.client.simxExecuteScriptString("sim.getIkGroupHandle(\"UR5_IK_Group\")", self.client.simxServiceCall())
         # ret = self.client.simxExecuteScriptString("sim.computeJacobian({}, 1, nil)".format(self.ik_group_handle), self.client.simxServiceCall())
         # print(ret)
