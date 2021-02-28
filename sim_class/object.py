@@ -9,6 +9,7 @@ class Object:
         if handle:
             self.handle = handle
             _, self.name = self.client.simxGetObjectName(self.handle, False, self.client.simxServiceCall())
+            self.name = self.name.decode()
         elif name:
             self.name = name
             success, self.handle = self.client.simxGetObjectHandle(name, self.client.simxServiceCall())

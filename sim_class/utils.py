@@ -12,7 +12,6 @@ def get_object_string_parameter(client, object_handle, name):
     return client.simxGetObjectStringParameter(object_handle, client.simxEvaluateToStr(name, client.simxServiceCall())[1], client.simxServiceCall())
 
 
-
 def set_object_float_parameter(client, object_handle, name, value):
     return client.simxSetObjectFloatParameter(object_handle, client.simxEvaluateToInt(name, client.simxServiceCall())[1], value, client.simxServiceCall())
 
@@ -23,3 +22,11 @@ def set_object_int_parameter(client, object_handle, name, value):
 
 def set_object_string_parameter(client, object_handle, name, value):
     return client.simxSetObjectStringParameter(object_handle, client.simxEvaluateToStr(name, client.simxServiceCall())[1], value, client.simxServiceCall())
+
+
+def build_list_str(items):
+    ret = ""
+    for item in items:
+        ret += "{},".format(item)
+    ret = "{{{}}}".format(ret[:-1])
+    return ret

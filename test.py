@@ -9,28 +9,36 @@ from scipy.spatial.transform import Rotation as R
 
 if __name__ == '__main__':
     with b0RemoteApi.RemoteApiClient('b0RemoteApi_V-REP', 'b0RemoteApi') as client:
-        print("bug")
+
         client.simxStartSimulation(client.simxServiceCall())
+
+        time.sleep(3)
 
         arm = UR5(client, name="UR5")
 
-        joints_target_positions = np.array([np.pi/2, 0, -np.pi/2, 0, np.pi/2, 0])
-        # arm.set_joints_target_positions(joints_target_positions)
-        # time.sleep(5)
-
-        while True:
-            joints_current_positions = arm.get_joints_positions()
-            print(joints_current_positions)
-            print(arm.jacobian @ joints_target_positions.T)
-            print(joints_target_positions @ arm.jacobian)
+        ompl = OMPL_arm(client, arm)
 
 
+        # joints_target_positions = np.array([np.pi/2, 0, -np.pi/2, 0, np.pi/2, 0])
+        # # arm.set_joints_target_positions(joints_target_positions)
+        # # time.sleep(5)
 
-        # t = [0.5, 0.0, 0.5]
-        # q = R.from_euler("xyz", [180, 0, 0], degrees=True).as_quat().tolist()
-        # cur_pose = t + q
-        # arm.move_to(cur_pose)
-        # time.sleep(5)
+
+        # while True:
+        #     joints_current_positions = arm.get_joints_positions()
+        #     print(joints_current_positions)
+        #     print(arm.jacobian @ joints_target_positions.T)
+        #     print(joints_target_positions @ arm.jacobian
+
+
+        t = [0.5, 0.0, 0.5]
+        q = R.from_euler("xyz", [180, 0, 0], degrees=True).as_quat().tolist()
+        cur_pose = t + q
+
+        arm.move_to(cur_pose)
+        time.sleep(5)
+
+
 
         # t = [0.3, 0.3, 0.5]
         # q = R.from_euler("xyz", [180, 0, 0], degrees=True).as_quat().tolist()
@@ -78,6 +86,6 @@ if __name__ == '__main__':
         #         client.simxSynchronousTrigger()
         #     client.simxSpinOnce()
         #
-        # client.simxStopSimulation(client.simxDefaultPublisher())
+        client.simxStopSimulation(client.simxDefaultPublisher())
 
 
