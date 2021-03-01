@@ -109,18 +109,17 @@ class UR5(Object):
         target_joints_positions = np.random.rand(6) * np.pi
 
         # iteration
-        weights = np.array([0.1,0.1,0.1,1,1,0.1])
         T_cur = self.fk(target_joints_positions)
         # T_new = e^[V] @ T_old
         e_V = np.matmul(T_target, np.linalg.inv(T_cur))
-        V = logm(e_V)#.real.astype(np.float32)
+        V = logm(e_V).real.astype(np.float32)
         v = self.mat2twist(V)
         n = np.linalg.norm(v)
         while n >= 0.01:
             # V = J @ theta_dot
             J = self.compute_jacobian(target_joints_positions)
             theta_dot = np.matmul(np.linalg.inv(J), v)
-            target_joints_positions += theta_dot# * weights
+            target_joints_positions += theta_dot
             T_cur = self.fk(target_joints_positions)
             V = logm(np.matmul(T_target, np.linalg.inv(T_cur)))
             v = self.mat2twist(V)
