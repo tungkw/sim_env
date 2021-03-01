@@ -12,16 +12,28 @@ if __name__ == '__main__':
 
         client.simxStartSimulation(client.simxServiceCall())
 
-        time.sleep(3)
 
         arm = UR5(client, name="UR5")
+        item = Object(client, name="test")
 
-        ompl = OMPL_arm(client, arm)
+        t = item.get_matrix()
 
+        # joints_target_positions = np.array([0, 0, 0, 0, 0, 0])
+        joints_target_positions = np.array([np.pi/2, 0, -np.pi/2, 0, np.pi/2, 0])
+        # joints_target_positions = np.array([0, np.pi/2, 0, 0, 0, 0])
+        arm.set_joints_target_positions(joints_target_positions)
 
-        # joints_target_positions = np.array([np.pi/2, 0, -np.pi/2, 0, np.pi/2, 0])
-        # # arm.set_joints_target_positions(joints_target_positions)
-        # # time.sleep(5)
+        fk = arm.fk(joints_target_positions)
+        target_pose = np.matmul(fk, t)
+        item.set_matrix(target_pose)
+
+        time.sleep(2)
+
+        print(target_pose)
+        print(item.get_matrix())
+        # print(arm.joints[-1].get_matrix())
+        time.sleep(20)
+
 
 
         # while True:
@@ -31,12 +43,12 @@ if __name__ == '__main__':
         #     print(joints_target_positions @ arm.jacobian
 
 
-        t = [0.5, 0.0, 0.5]
-        q = R.from_euler("xyz", [180, 0, 0], degrees=True).as_quat().tolist()
-        cur_pose = t + q
-
-        arm.move_to(cur_pose)
-        time.sleep(5)
+        # t = [0.5, 0.0, 0.5]
+        # q = R.from_euler("xyz", [180, 0, 0], degrees=True).as_quat().tolist()
+        # cur_pose = t + q
+        #
+        # arm.move_to(cur_pose)
+        # time.sleep(5)
 
 
 

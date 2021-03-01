@@ -3,6 +3,7 @@ from .joint import Joint
 from .ompl import OMPL_arm
 import numpy as np
 from scipy.spatial.transform import Rotation as R
+from scipy.linalg import logm, expm
 import time
 
 class UR5(Object):
@@ -16,6 +17,13 @@ class UR5(Object):
         self.tip = Object(client, name="UR5_tip")
         res, self.ik_group_handle = self.client.simxExecuteScriptString("sim.getIkGroupHandle('UR5_IK_Group')", self.client.simxServiceCall())
 
+        self.origin_pose = self.joints[-1].get_matrix()
+        self.w = []
+        self.p = []
+        for i in range(len(self.joints)):
+            mat = self.joints[i].get_matrix()
+            self.w.append(mat[:3, 2])
+            self.p.append(mat[:3, 3])
         self.ompl = OMPL_arm(client, joint_handles)
 
     def get_joints_positions(self):
@@ -35,9 +43,24 @@ class UR5(Object):
         for i, joint in enumerate(self.joints):
             joint.set_joint_target_velocity(joints_velocities[i])
 
+    def twist2mat(self, twist):
+        v = twist[:3]
+        w = twist[3:]
+        mat = np.zeros([4,4])
+        mat[0,1] = -w[2]
+        mat[0,2] = w[1]
+        mat[1,2] = -w[0]
+        mat += -mat.T
+        mat[:3, 3] = v
+        return mat
+
     def fk(self, joints_positions):
         mat = np.eye(4)
-        return mat
+        for i in range(len(self.joints)):
+            t = np.concatenate([-np.cross(self.w[i], self.p[i]), self.w[i]], axis=0)
+            T = expm(self.twist2mat(t) * joints_positions[i])
+            mat = np.matmul(mat, T)
+        return np.matmul(mat, self.origin_pose)
 
     def compute_jacobian(self, joints_positions):
         return np.eye(6)
@@ -53,14 +76,14 @@ class UR5(Object):
         # iteration
         T_cur = self.fk(target_joints_positions)
         # T_new = e^[V] @ T_old
-        V = logm(np.matmul(T_target, np.linalg.inv(T_cur))
+        V = logm(np.matmul(T_target, np.linalg.inv(T_cur)))
         while np.linalg.norm(V) >= 0.01:
             # V = J @ theta_dot
             J = self.compute_jacobian(target_joints_positions)
             theta_dot = np.matmul(np.linalg.inv(J), V)
             target_joints_positions += theta_dot
             T_cur = self.fk(target_joints_positions)
-            V = np.log(np.matmul(T_target, np.linalg.inv(T_cur)))
+            V = logm(np.matmul(T_target, np.linalg.inv(T_cur)))
 
         return target_joints_positions
 
