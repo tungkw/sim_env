@@ -16,8 +16,8 @@ class OMPL_arm():
                 self.joints_handles,
                 start_joints_positions,
                 end_joints_positions,
-                100,
-                400
+                self.max_search_position_times,
+                self.min_midpoints
             ],
             self.client.simxServiceCall()
         )

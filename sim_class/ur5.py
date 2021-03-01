@@ -43,16 +43,33 @@ class UR5(Object):
         for i, joint in enumerate(self.joints):
             joint.set_joint_target_velocity(joints_velocities[i])
 
-    def twist2mat(self, twist):
-        v = twist[:3]
-        w = twist[3:]
-        mat = np.zeros([4,4])
+    def screw(self, w):
+        mat = np.zeros([3,3])
         mat[0,1] = -w[2]
         mat[0,2] = w[1]
         mat[1,2] = -w[0]
         mat += -mat.T
+        return mat
+
+    def unscrew(self, mat):
+        w = np.zeros(3)
+        w[0] = -mat[1,2]
+        w[1] = mat[0,2]
+        w[2] = -mat[0,1]
+        return w
+
+    def twist2mat(self, twist):
+        v = twist[:3]
+        w = twist[3:]
+        mat = np.zeros([4,4])
+        mat[:3, :3] = self.screw(w)
         mat[:3, 3] = v
         return mat
+
+    def mat2twist(self, mat):
+        v = mat[:3, 3]
+        w = self.unscrew(mat[:3, :3])
+        return np.concatenate([v, w], axis=0)
 
     def fk(self, joints_positions):
         mat = np.eye(4)
@@ -62,8 +79,26 @@ class UR5(Object):
             mat = np.matmul(mat, T)
         return np.matmul(mat, self.origin_pose)
 
+    def Ad(self, mat):
+        ret = np.eye(6)
+        R = mat[:3, :3]
+        t = mat[:3, 3]
+        ret[:3, :3] = R
+        ret[:3, 3:] = np.matmul(self.screw(t), R)
+        ret[3:, 3:] = R
+        return ret
+
     def compute_jacobian(self, joints_positions):
-        return np.eye(6)
+        J = np.eye(6)
+        mat = np.eye(4)
+        for i in range(len(self.joints)):
+            t = np.concatenate([-np.cross(self.w[i], self.p[i]), self.w[i]], axis=0)
+            t_m = self.twist2mat(t)
+            Ad = self.Ad(mat)
+            J[:, i] = np.matmul(Ad, t.T)
+            T = expm(t_m * joints_positions[i])
+            mat = np.matmul(mat, T)
+        return J
 
     def ik(self, pose):
         T_target = np.eye(4)
@@ -74,23 +109,31 @@ class UR5(Object):
         target_joints_positions = np.random.rand(6) * np.pi
 
         # iteration
+        weights = np.array([0.1,0.1,0.1,1,1,0.1])
         T_cur = self.fk(target_joints_positions)
         # T_new = e^[V] @ T_old
-        V = logm(np.matmul(T_target, np.linalg.inv(T_cur)))
-        while np.linalg.norm(V) >= 0.01:
+        e_V = np.matmul(T_target, np.linalg.inv(T_cur))
+        V = logm(e_V)#.real.astype(np.float32)
+        v = self.mat2twist(V)
+        n = np.linalg.norm(v)
+        while n >= 0.01:
             # V = J @ theta_dot
             J = self.compute_jacobian(target_joints_positions)
-            theta_dot = np.matmul(np.linalg.inv(J), V)
-            target_joints_positions += theta_dot
+            theta_dot = np.matmul(np.linalg.inv(J), v)
+            target_joints_positions += theta_dot# * weights
             T_cur = self.fk(target_joints_positions)
             V = logm(np.matmul(T_target, np.linalg.inv(T_cur)))
-
+            v = self.mat2twist(V)
+            n = np.linalg.norm(v)
+        target_joints_positions = target_joints_positions % (np.pi*2)
+        filter = np.abs(target_joints_positions) > np.pi
+        target_joints_positions[filter] = target_joints_positions[filter] - np.pi*2
         return target_joints_positions
 
     def move_to(self, pose):
         start_joints_positions = self.get_joints_positions()
         end_joints_positions = self.ik(pose)
-        path = self.ompl.get_path(start_joints_positions, end_joints_positions)
+        path = self.ompl.get_path(start_joints_positions, end_joints_positions.tolist())
 
         # follow path
         if path:

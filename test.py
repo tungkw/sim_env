@@ -15,25 +15,35 @@ if __name__ == '__main__':
 
         arm = UR5(client, name="UR5")
         item = Object(client, name="test")
-
-        t = item.get_matrix()
-
-        # joints_target_positions = np.array([0, 0, 0, 0, 0, 0])
-        joints_target_positions = np.array([np.pi/2, 0, -np.pi/2, 0, np.pi/2, 0])
-        # joints_target_positions = np.array([0, np.pi/2, 0, 0, 0, 0])
-        arm.set_joints_target_positions(joints_target_positions)
-
-        fk = arm.fk(joints_target_positions)
-        target_pose = np.matmul(fk, t)
-        item.set_matrix(target_pose)
-
-        time.sleep(2)
-
-        print(target_pose)
-        print(item.get_matrix())
-        # print(arm.joints[-1].get_matrix())
-        time.sleep(20)
-
+        #
+        # t = item.get_matrix()
+        #
+        # # joints_target_positions = np.array([0, 0, 0, 0, 0, 0])
+        # joints_target_positions = np.array([np.pi/2, 0, -np.pi/2, 0, np.pi/2, 0])
+        # # joints_target_positions = np.array([0, np.pi/2, 0, 0, 0, 0])
+        # arm.set_joints_target_positions(joints_target_positions)
+        #
+        # fk = arm.fk(joints_target_positions)
+        # # target_pose = np.matmul(fk, t)
+        # target_pose = fk
+        # item.set_matrix(target_pose)
+        #
+        # time.sleep(2)
+        #
+        # print(target_pose)
+        # print(item.get_matrix())
+        # # print(arm.joints[-1].get_matrix())
+        # time.sleep(2)
+        #
+        # t = target_pose[:3, 3]
+        # q = R.from_dcm(target_pose[:3, :3]).as_quat()
+        # p = t.tolist() + q.tolist()
+        # res = arm.ik(p)
+        # print(res)
+        # time.sleep(2)
+        #
+        # arm.set_joints_target_positions(res)
+        # time.sleep(2)
 
 
         # while True:
@@ -43,12 +53,13 @@ if __name__ == '__main__':
         #     print(joints_target_positions @ arm.jacobian
 
 
-        # t = [0.5, 0.0, 0.5]
-        # q = R.from_euler("xyz", [180, 0, 0], degrees=True).as_quat().tolist()
-        # cur_pose = t + q
-        #
-        # arm.move_to(cur_pose)
-        # time.sleep(5)
+        t = [0.5, 0.0, 0.5]
+        q = R.from_euler("xyz", [180, 0, 0], degrees=True).as_quat().tolist()
+        cur_pose = t + q
+
+        item.set_pose(cur_pose)
+        arm.move_to(cur_pose)
+        time.sleep(5)
 
 
 
