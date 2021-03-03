@@ -19,9 +19,9 @@ if __name__ == '__main__':
         # t = item.get_matrix()
         #
         # # joints_target_positions = np.array([0, 0, 0, 0, 0, 0])
-        joints_target_positions = np.array([np.pi/2, 0, -np.pi/2, 0, np.pi/2, 0])
+        # joints_target_positions = np.array([np.pi/2, 0, -np.pi/2, 0, np.pi/2, 0])
         # # joints_target_positions = np.array([0, np.pi/2, 0, 0, 0, 0])
-        arm.set_joints_target_positions(joints_target_positions)
+        # arm.set_joints_target_positions(joints_target_positions)
         #
         # fk = arm.fk(joints_target_positions)
         # # target_pose = np.matmul(fk, t)

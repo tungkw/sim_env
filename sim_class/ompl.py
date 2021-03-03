@@ -1,6 +1,7 @@
 
-
 class OMPL_arm():
+    # using with OMPL_arm.ttm model
+
     def __init__(self, client, joints_handles):
         self.client = client
         self.joints_handles = joints_handles
